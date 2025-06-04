@@ -1,3 +1,6 @@
+import { auth } from './firebase';
+import { onAuthStateChanged } from 'firebase/auth';
+import AuthButton from './components/AuthButton';
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useOnClickOutside } from './hooks/useOnClickOutside';
 import MessageInputContainer from './components/MessageInputContainer';
@@ -74,9 +77,17 @@ const LLM_MODELS = [
     modelId: '"deepseek-r1-free"',
     color: '#8SFF6B'
   },
+  {
+    id: "qwen3 235b",
+    name: "Qwen-3 235b",
+    modelId: "qwen3 235b",
+    color: '#7F52FF'
+  },
 ];
 
 function App() {
+  const [user, setUser] = useState(null);
+  const [isAuthLoading, setIsAuthLoading] = useState(true);
   const [activeSession, setActiveSession] = useState(null);
   const [selectedModel, setSelectedModel] = useState(LLM_MODELS[0].modelId);
   const [chats, setChats] = useState(() => {
@@ -106,6 +117,33 @@ function App() {
   const [isFirstVisit, setIsFirstVisit] = useState(true);
   const [showWelcome, setShowWelcome] = useState(false);
   const [inputPosition, setInputPosition] = useState('center');
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      setUser(user);
+      setIsAuthLoading(false);
+      
+      // Сохраняем данные пользователя в localStorage
+      if (user) {
+        localStorage.setItem('user', JSON.stringify({
+          uid: user.uid,
+          displayName: user.displayName,
+          email: user.email,
+          photoURL: user.photoURL
+        }));
+      } else {
+        localStorage.removeItem('user');
+      }
+    });
+
+    // Проверяем localStorage при загрузке
+    const savedUser = localStorage.getItem('user');
+    if (savedUser) {
+      setUser(JSON.parse(savedUser));
+    }
+
+    return () => unsubscribe();
+  }, []);
 
   // Управление состоянием приветствия и позицией поля ввода
   useEffect(() => {

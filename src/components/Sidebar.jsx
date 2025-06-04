@@ -63,6 +63,12 @@ const LLM_MODELS = [
     modelId: '"deepseek-r1-free"',
     color: '#99FF6B'
   },
+  {
+    id: "qwen3 235b",
+    name: "Qwen-3 235b",
+    modelId: "qwen3 235b",
+    color: '#7F52FF'
+  },
 ];
 
 export const Sidebar = ({
@@ -180,7 +186,14 @@ export const Sidebar = ({
               <div className="model-menu-header">
                 <h4>Выберите модель</h4>
               </div>
-              <div className="model-options-list">
+              <div 
+                className="model-options-list"
+                style={{ 
+                  maxHeight: '300px',
+                  overflowY: 'auto',
+                  scrollbarWidth: 'thin'
+                }}
+              >
                 {LLM_MODELS.map(model => (
                   <motion.div
                     key={model.id}
