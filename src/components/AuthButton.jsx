@@ -1,7 +1,7 @@
-import React from 'react';
 import { motion } from 'framer-motion';
 import { signInWithGoogle, signOutUser } from '../firebase';
 import { Google } from '@mui/icons-material';
+import React from 'react';
 
 const AuthButton = ({ user }) => {
   return (

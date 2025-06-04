@@ -7,7 +7,7 @@ import { Menu, Close, Brightness4, Brightness7, ArrowDropDown } from '@mui/icons
 import { Sidebar } from './components/Sidebar';
 import ReactMarkdown from 'react-markdown';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import { vscDarkPlus } from 'react-syntax-highlighter/dist/cjs/styles/prism';
 import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
 import 'katex/dist/katex.min.css';

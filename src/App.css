@@ -1878,3 +1878,49 @@ html, body {
   scrollbar-color: #888 #f1f1f1;
   scrollbar-width: thin;
 }
+.user-info {
+  display: flex;
+  align-items: center;
+  padding: 1rem;
+  gap: 12px;
+  border-bottom: 1px solid rgb(var(--border-primary));
+  margin-bottom: 1rem;
+}
+
+.user-avatar-large {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #4d6bfe;
+}
+
+.user-details {
+  flex: 1;
+}
+
+.user-name {
+  font-weight: 600;
+  color: rgb(var(--text-primary));
+  font-size: 1rem;
+}
+
+.user-email {
+  font-size: 0.8rem;
+  color: rgb(var(--text-tertiary));
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.message-user-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.message-avatar {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  object-fit: cover;
+}
