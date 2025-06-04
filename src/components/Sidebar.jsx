@@ -82,9 +82,6 @@ export const Sidebar = ({
   setActiveSession,
   themeMode,
   setThemeMode,
-  user,
-  onLogin,
-  onLogout,
 }) => {
   const [isModelMenuOpen, setIsModelMenuOpen] = useState(false);
 
@@ -228,38 +225,6 @@ export const Sidebar = ({
 
   return (
     <div className={`sidebar ${isPanelOpen ? '' : 'hidden'}`}>
-      {/* Блок пользователя */}
-      {user ? (
-        <div className="user-info">
-          <img 
-            src={user.photoURL} 
-            alt={user.displayName} 
-            className="user-avatar-large"
-          />
-          <div className="user-details">
-            <div className="user-name">{user.displayName}</div>
-            <div className="user-email">{user.email}</div>
-          </div>
-          <motion.button
-            className="logout-button"
-            onClick={onLogout}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-          >
-            Выйти
-          </motion.button>
-        </div>
-      ) : (
-        <motion.button
-          className="login-button"
-          onClick={onLogin}
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-        >
-          Войти
-        </motion.button>
-      )}
-
       {/* УДАЛЯЕМ ДУБЛИРОВАННЫЙ БЛОК КНОПОК */}
       {/* Оставляем только один блок header-controls */}
       <div className="sidebar-header">

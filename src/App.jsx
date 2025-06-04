@@ -112,9 +112,14 @@ function App() {
   const [inputPosition, setInputPosition] = useState('center');
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
 
-  const handleLogin = async () => {await signInWithGoogle();};
-
-  const handleLogout = async () => {await signOutUser();setUser(null);};
+  const handleLogin = async () => { await signInWithGoogle(); };
+  const handleLogout = async () => { await signOutUser(); setUser(null); };
+  
+  // Добавляем функцию смены аккаунта
+  const handleSwitchAccount = async () => {
+    await signOutUser();
+    await signInWithGoogle();
+  };
 
   // Аутентификация
   useEffect(() => {
@@ -531,6 +536,9 @@ function App() {
                         <div className="user-name">{user.displayName}</div>
                         <div className="user-email">{user.email}</div>
                       </div>
+                      <button className="menu-item" onClick={handleSwitchAccount}>
+                        Сменить аккаунт
+                      </button>
                       <button className="menu-item" onClick={handleLogout}>
                         Выйти
                       </button>
@@ -555,9 +563,6 @@ function App() {
                 setThemeMode(mode);
                 localStorage.setItem('themeMode', mode.toString());
               }}
-              user={user}
-              onLogin={handleLogin}  // Передаем обработчик входа
-              onLogout={handleLogout} // Передаем обработчик выхода
             />
 
             <PanelToggleButton isPanelOpen={isPanelOpen} />
