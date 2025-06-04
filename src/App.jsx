@@ -15,6 +15,7 @@ import './App.css';
 import { auth } from './firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 import AuthButton from './components/AuthButton';
+import { signInWithGoogle, signOutUser } from './firebase';
 
 const LLM_MODELS = [
   {
@@ -104,9 +105,16 @@ function App() {
   const messagesEndRef = useRef(null);
   const chatContainerRef = useRef(null);
   const sidebarRef = useRef(null);
+  const userMenuRef = useRef(null);
+  useOnClickOutside(userMenuRef, () => setIsUserMenuOpen(false));
   
   const [showWelcome, setShowWelcome] = useState(false);
   const [inputPosition, setInputPosition] = useState('center');
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+
+  const handleLogin = async () => {await signInWithGoogle();};
+
+  const handleLogout = async () => {await signOutUser();setUser(null);};
 
   // Аутентификация
   useEffect(() => {
@@ -142,6 +150,7 @@ function App() {
   };
 
   useOnClickOutside(sidebarRef, closeSidebar);
+  useOnClickOutside(userMenuRef, () => setIsUserMenuOpen(false));
 
   // Позиция поля ввода
   useEffect(() => {
@@ -493,8 +502,45 @@ function App() {
           </div>
         ) : user ? (
           <>
+            <div className="top-toolbar">
+              
+              
+              <div className="user-menu-container" ref={userMenuRef}>
+                <motion.button
+                  className="user-avatar-button"
+                  onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  <img 
+                    src={user.photoURL} 
+                    alt={user.displayName} 
+                    className="user-avatar-toolbar"
+                  />
+                </motion.button>
+                
+                <AnimatePresence>
+                  {isUserMenuOpen && (
+                    <motion.div
+                      className="user-menu-dropdown"
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -10 }}
+                    >
+                      <div className="user-details">
+                        <div className="user-name">{user.displayName}</div>
+                        <div className="user-email">{user.email}</div>
+                      </div>
+                      <button className="menu-item" onClick={handleLogout}>
+                        Выйти
+                      </button>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            </div>
+
             <Sidebar
-              user={user}
               ref={sidebarRef}
               isPanelOpen={isPanelOpen}
               setIsPanelOpen={setIsPanelOpen}
@@ -509,6 +555,9 @@ function App() {
                 setThemeMode(mode);
                 localStorage.setItem('themeMode', mode.toString());
               }}
+              user={user}
+              onLogin={handleLogin}  // Передаем обработчик входа
+              onLogout={handleLogout} // Передаем обработчик выхода
             />
 
             <PanelToggleButton isPanelOpen={isPanelOpen} />
@@ -591,7 +640,8 @@ function App() {
             <div className="auth-card">
               <h2>Добро пожаловать в DeepSeek Chat</h2>
               <p>Для начала работы войдите с помощью Google</p>
-              <AuthButton user={user} />
+              {/* Исправляем компонент AuthButton */}
+              <AuthButton user={user} onLogin={handleLogin} />
             </div>
           </div>
         )}

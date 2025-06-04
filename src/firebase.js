@@ -1,10 +1,13 @@
 import { initializeApp } from "firebase/app";
 import { 
   getAuth, 
-  GoogleAuthProvider, 
   signInWithPopup, 
-  signOut 
-} from "firebase/auth";
+  GoogleAuthProvider,
+  OAuthProvider,
+  signInWithEmailAndPassword as firebaseEmailSignIn,
+  createUserWithEmailAndPassword as firebaseEmailSignUp,
+  signOut
+} from 'firebase/auth';
 
 const firebaseConfig = {
   apiKey: "AIzaSyAFpS7xH0-a6USzEBESBGYPJTQg3VVZEnE",
@@ -18,8 +21,14 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
+
+// Google провайдер
 const googleProvider = new GoogleAuthProvider();
 
+// Яндекс провайдер
+const yandexProvider = new OAuthProvider('yandex.com');
+
+// Функции авторизации
 export const signInWithGoogle = async () => {
   try {
     const result = await signInWithPopup(auth, googleProvider);
@@ -28,6 +37,24 @@ export const signInWithGoogle = async () => {
     console.error("Google Sign-In Error:", error);
     throw error;
   }
+};
+
+export const signInWithYandex = async () => {
+  try {
+    const result = await signInWithPopup(auth, yandexProvider);
+    return result.user;
+  } catch (error) {
+    console.error("Yandex Sign-In Error:", error);
+    throw error;
+  }
+};
+
+export const loginWithEmail = (email, password) => {
+  return firebaseEmailSignIn(auth, email, password);
+};
+
+export const registerWithEmail = (email, password) => {
+  return firebaseEmailSignUp(auth, email, password);
 };
 
 export const signOutUser = async () => {

@@ -1924,3 +1924,315 @@ html, body {
   border-radius: 50%;
   object-fit: cover;
 }
+/* Добавляем в конец файла */
+
+/* Стили для блока пользователя */
+.user-info {
+  display: flex;
+  align-items: center;
+  padding: 1rem;
+  gap: 12px;
+  border-bottom: 1px solid rgb(var(--border-primary));
+  margin-bottom: 1rem;
+}
+
+.user-avatar-large {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #4d6bfe;
+}
+
+.user-details {
+  flex: 1;
+}
+
+.user-name {
+  font-weight: 600;
+  color: rgb(var(--text-primary));
+  font-size: 1rem;
+}
+
+.user-email {
+  font-size: 0.8rem;
+  color: rgb(var(--text-tertiary));
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Улучшаем страницу авторизации */
+.auth-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  background: linear-gradient(135deg, #6e8efb, #a777e3);
+}
+
+.auth-card {
+  background: rgba(255, 255, 255, 0.9);
+  padding: 2rem 3rem;
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  text-align: center;
+  max-width: 400px;
+  width: 100%;
+  backdrop-filter: blur(10px);
+}
+
+.auth-card h2 {
+  margin-bottom: 1rem;
+  color: #333;
+}
+
+.auth-card p {
+  margin-bottom: 1.5rem;
+  color: #555;
+}
+
+/* Улучшаем кнопку авторизации */
+.google-signin-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 12px 24px;
+  background: #4285f4;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.google-signin-button:hover {
+  background: #3367d6;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
+.google-signin-button:active {
+  transform: translateY(0);
+}
+/* Добавляем в конец файла */
+
+.top-toolbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 60px;
+  background: rgba(var(--bg-primary), 0.8);
+  backdrop-filter: blur(10px);
+  display: flex;
+  align-items: center;
+  padding: 0 1rem;
+  z-index: 1000;
+  border-bottom: 1px solid rgb(var(--border-primary));
+}
+
+.user-panel {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.user-avatar-toolbar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #4d6bfe;
+}
+
+.user-name-toolbar {
+  font-weight: 500;
+  color: rgb(var(--text-primary));
+}
+
+/* Адаптация для мобильных */
+@media (max-width: 768px) {
+  .user-panel .user-details {
+    display: none;
+  }
+  
+  .user-avatar-toolbar {
+    width: 30px;
+    height: 30px;
+  }
+}
+
+/* Обновляем позиционирование кнопки панели */
+.panel-toggle {
+  position: relative;
+  left: 0;
+  top: 0;
+  margin-right: 15px;
+  z-index: 1001;
+}
+
+/* Добавить в конец файла */
+.user-info {
+  display: flex;
+  align-items: center;
+  padding: 1rem;
+  gap: 12px;
+  border-bottom: 1px solid rgb(var(--border-primary));
+  margin-bottom: 1rem;
+}
+
+.user-avatar-large {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #4d6bfe;
+}
+
+.user-details {
+  flex: 1;
+}
+
+.user-name {
+  font-weight: 600;
+  color: rgb(var(--text-primary));
+  font-size: 0.9rem;
+}
+
+.user-email {
+  font-size: 0.75rem;
+  color: rgb(var(--text-tertiary));
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.login-button, .logout-button {
+  padding: 8px 16px;
+  border-radius: 20px;
+  background: var(--accent-color);
+  color: white;
+  border: none;
+  cursor: pointer;
+  font-size: 0.9rem;
+  white-space: nowrap;
+}
+
+.login-button:hover, .logout-button:hover {
+  opacity: 0.9;
+}
+/* App.css */
+.user-menu-container {
+  position: relative;
+  margin-left: auto;
+}
+
+.user-menu-dropdown {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background: var(--bg-color);
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  padding: 12px;
+  width: 220px;
+  z-index: 100;
+}
+
+.user-avatar-button {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  border-radius: 50%;
+}
+
+.menu-item {
+  width: 100%;
+  padding: 8px 12px;
+  text-align: left;
+  background: none;
+  border: none;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.menu-item:hover {
+  background: rgba(0,0,0,0.05);
+}
+
+.sidebar .user-info {
+  position: relative;
+}
+
+/* Стили для выпадающего меню аватарки */
+.user-menu-container {
+  position: relative;
+  margin-left: auto;
+}
+
+.user-avatar-button {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  border-radius: 50%;
+}
+
+.user-avatar-button img {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #4d6bfe;
+}
+
+.user-menu-dropdown {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background: rgb(var(--bg-primary));
+  border: 1px solid rgb(var(--border-primary));
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  padding: 12px;
+  width: 220px;
+  z-index: 100;
+}
+
+.user-menu-dropdown .user-details {
+  padding: 8px 12px;
+  border-bottom: 1px solid rgb(var(--border-primary));
+  margin-bottom: 8px;
+}
+
+.user-menu-dropdown .user-name {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: rgb(var(--text-primary));
+}
+
+.user-menu-dropdown .user-email {
+  font-size: 0.8rem;
+  color: rgb(var(--text-tertiary));
+}
+
+.menu-item {
+  width: 100%;
+  padding: 8px 12px;
+  text-align: left;
+  background: none;
+  border: none;
+  cursor: pointer;
+  border-radius: 4px;
+  color: rgb(var(--text-primary));
+}
+
+.menu-item:hover {
+  background: rgba(var(--bg-active));
+}
