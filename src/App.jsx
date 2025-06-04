@@ -1,6 +1,3 @@
-import { auth } from './firebase';
-import { onAuthStateChanged } from 'firebase/auth';
-import AuthButton from './components/AuthButton';
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useOnClickOutside } from './hooks/useOnClickOutside';
 import MessageInputContainer from './components/MessageInputContainer';
@@ -15,6 +12,9 @@ import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
 import 'katex/dist/katex.min.css';
 import './App.css';
+import { auth } from './firebase';
+import { onAuthStateChanged } from 'firebase/auth';
+import AuthButton from './components/AuthButton';
 
 const LLM_MODELS = [
   {
@@ -99,31 +99,21 @@ function App() {
   const [isLoading, setIsLoading] = useState(false);
   const [themeMode, setThemeMode] = useState(() => {
     const savedTheme = localStorage.getItem('themeMode');
-    return savedTheme ? parseInt(savedTheme) : 1; // 0 - light, 1 - dark, 2 - system
+    return savedTheme ? parseInt(savedTheme) : 1;
   });
   const messagesEndRef = useRef(null);
   const chatContainerRef = useRef(null);
   const sidebarRef = useRef(null);
-
-  // Обработчик закрытия сайдбара
-  const closeSidebar = () => {
-    if (window.innerWidth <= 768) {
-      setIsPanelOpen(false);
-    }
-  };
-
-  // Хук для обработки клика вне сайдбара
-  useOnClickOutside(sidebarRef, closeSidebar);
-  const [isFirstVisit, setIsFirstVisit] = useState(true);
+  
   const [showWelcome, setShowWelcome] = useState(false);
   const [inputPosition, setInputPosition] = useState('center');
 
+  // Аутентификация
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setUser(user);
       setIsAuthLoading(false);
       
-      // Сохраняем данные пользователя в localStorage
       if (user) {
         localStorage.setItem('user', JSON.stringify({
           uid: user.uid,
@@ -136,7 +126,6 @@ function App() {
       }
     });
 
-    // Проверяем localStorage при загрузке
     const savedUser = localStorage.getItem('user');
     if (savedUser) {
       setUser(JSON.parse(savedUser));
@@ -145,7 +134,16 @@ function App() {
     return () => unsubscribe();
   }, []);
 
-  // Управление состоянием приветствия и позицией поля ввода
+  // Закрытие сайдбара на мобильных
+  const closeSidebar = () => {
+    if (window.innerWidth <= 768) {
+      setIsPanelOpen(false);
+    }
+  };
+
+  useOnClickOutside(sidebarRef, closeSidebar);
+
+  // Позиция поля ввода
   useEffect(() => {
     if (!activeSession) {
       setInputPosition('center');
@@ -157,37 +155,24 @@ function App() {
     }
   }, [activeSession, chats]);
 
-  // Тема и начальные настройки
-  const toggleTheme = () => {
-    const newThemeMode = (themeMode + 1) % 3;
-    setThemeMode(newThemeMode);
-    localStorage.setItem('themeMode', newThemeMode.toString());
-  };
+  // Управление темой
+  const applyTheme = useCallback(() => {
+    if (themeMode === 2) {
+      const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      document.documentElement.setAttribute('data-theme', systemDark ? 'dark' : 'light');
+    } else {
+      const isDark = themeMode === 1;
+      document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
+    }
+  }, [themeMode]);
 
   useEffect(() => {
-    const applyTheme = () => {
-      if (themeMode === 2) {
-        // Системная тема
-        const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-        document.documentElement.setAttribute('data-theme', systemDark ? 'dark' : 'light');
-        document.body.classList.toggle('dark-mode', systemDark);
-        document.body.classList.toggle('light-mode', !systemDark);
-      } else {
-        // Ручной выбор темы
-        const isDark = themeMode === 1;
-        document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
-        document.body.classList.toggle('dark-mode', isDark);
-        document.body.classList.toggle('light-mode', !isDark);
-      }
-    };
-
     applyTheme();
     
     if (themeMode === 2) {
       const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
       const handleSystemThemeChange = () => {
         applyTheme();
-        // Принудительно обновляем компоненты
         setThemeMode(prev => {
           localStorage.setItem('themeMode', prev.toString());
           return prev;
@@ -196,15 +181,7 @@ function App() {
       mediaQuery.addEventListener('change', handleSystemThemeChange);
       return () => mediaQuery.removeEventListener('change', handleSystemThemeChange);
     }
-  }, [themeMode]);
-
-  useEffect(() => {
-    const hasVisited = localStorage.getItem('hasVisited');
-    if (!hasVisited) {
-      setIsFirstVisit(true);
-      localStorage.setItem('hasVisited', 'true');
-    }
-  }, []);
+  }, [themeMode, applyTheme]);
 
   // Создание новой сессии
   const createNewSession = () => {
@@ -239,24 +216,22 @@ function App() {
         return urlMatch ? urlMatch[1] : null;
       }).filter(url => url);
 
-      // Добавление сообщения пользователя
       const newMessages = [...chats[activeSession].messages];
       const userMessage = {
         content: input,
         isUser: true,
         imageUrl: imageUrls[0] || null,
-        id: Date.now() // Уникальный ID для сообщения
+        id: Date.now()
       };
 
       newMessages.push(userMessage);
       
-      // Создаем временное сообщение AI с уникальным ID
       const tempAiMessage = {
         content: '',
         isUser: false,
         aiImages: [],
         isStreaming: true,
-        id: Date.now() + 1 // Уникальный ID для временного сообщения
+        id: Date.now() + 1
       };
 
       newMessages.push(tempAiMessage);
@@ -272,7 +247,6 @@ function App() {
       setInput('');
       setIsLoading(true);
 
-      // Отправка запроса с поддержкой потока
       const response = await fetch('https://hdghs.onrender.com/chat', {
         method: 'POST',
         headers: { 
@@ -282,7 +256,8 @@ function App() {
         body: JSON.stringify({
           userInput: input,
           model: selectedModel,
-          imageUrl: imageUrls[0] || null
+          imageUrl: imageUrls[0] || null,
+          userId: user?.uid || "anonymous"
         })
       });
 
@@ -290,12 +265,10 @@ function App() {
       
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
-      let aiMessageIndex = chats[activeSession].messages.length;
       let accumulatedContent = '';
 
       const processStream = async ({ done, value }) => {
         if (done) {
-          // Обновляем временное сообщение в финальное состояние
           setChats(prev => {
             const newMessages = [...prev[activeSession].messages];
             const aiMessageIndex = newMessages.findIndex(msg => msg.id === tempAiMessage.id);
@@ -365,9 +338,8 @@ function App() {
       };
 
       reader.read().then(processStream);
-      
       scrollToBottom();
-    } catch ( error) {
+    } catch (error) {
       console.error('Error:', error);
     } finally {
       setIsLoading(false);
@@ -395,7 +367,7 @@ function App() {
     setTimeout(scrollToBottom, 50);
   }, [chats[activeSession]?.messages, scrollToBottom]);
 
-  // Компоненты интерфейса
+  // Компонент переключения панели
   const PanelToggleButton = ({ isPanelOpen }) => (
     <motion.button
       className="panel-toggle"
@@ -408,258 +380,224 @@ function App() {
     </motion.button>
   );
 
-  const [isThemeMenuOpen, setIsThemeMenuOpen] = useState(false);
-
-
-  const [isModelMenuOpen, setIsModelMenuOpen] = useState(false);
-
-  // Компонент выбора модели
-  const ModelSelector = () => {
-    const currentModel = LLM_MODELS.find(m => m.modelId === selectedModel);
-
-    return (
-      <div className="model-selector">
-        <motion.button
-          className="model-button"
-          onClick={() => setIsModelMenuOpen(!isModelMenuOpen)}
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
-        >
-          <div className="model-color" style={{ backgroundColor: currentModel?.color }} />
-          <span>{currentModel?.name}</span>
-          <ArrowDropDown className={`arrow ${isModelMenuOpen ? 'open' : ''}`} />
-        </motion.button>
-
-        <AnimatePresence>
-          {isModelMenuOpen && (
-            <motion.div
-              className="model-menu"
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-            >
-              {LLM_MODELS.map(model => (
-                <motion.div
-                  key={model.id}
-                  className="model-option"
-                  onClick={() => {
-                    setSelectedModel(model.modelId);
-                    setIsModelMenuOpen(false);
-                  }}
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                >
-                  <div className="model-color" style={{ backgroundColor: model.color }} />
-                  <div className="model-info">
-                    <span className="model-name">{model.name}</span>
-                    <span className="model-desc">{model.description}</span>
-                  </div>
-                </motion.div>
-              ))}
-            </motion.div>
-          )}
-        </AnimatePresence>
+  // Компонент Message
+  const Message = ({ content, isUser, imageUrl, aiImages, model, isStreaming }) => (
+    <motion.div
+      className={`message ${isUser ? 'user' : 'ai'} ${isStreaming ? 'streaming' : ''}`}
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+    >
+      {isStreaming && (
+        <div className="streaming-indicator">
+          <div className="typing-animation">
+            <div className="dot"></div>
+            <div className="dot"></div>
+            <div className="dot"></div>
+          </div>
+        </div>
+      )}
+      <div className="message-header">
+        {isUser ? (
+          <div className="message-user-info">
+            {user?.photoURL && (
+              <img 
+                src={user.photoURL} 
+                alt={user.displayName} 
+                className="message-avatar"
+              />
+            )}
+            <span>Вы</span>
+          </div>
+        ) : (
+          LLM_MODELS.find(m => m.modelId === model)?.name || 'AI'
+        )}
       </div>
-    );
-  };
+      <div className="message-bubble">
+        {imageUrl && <img src={imageUrl} alt="Uploaded content" className="message-image" />}
+        {aiImages?.map((img, i) => (
+          <img key={i} src={img} alt={`Generated content ${i}`} className="message-image" />
+        ))}
+        <ReactMarkdown
+          remarkPlugins={[remarkMath]}
+          rehypePlugins={[rehypeKatex]}
+          components={{
+            code({ inline, className, children, ...props }) {
+              const match = /language-(\w+)/.exec(className || '');
+              const [copied, setCopied] = useState(false);
+
+              const copyToClipboard = () => {
+                navigator.clipboard.writeText(String(children).replace(/\n$/, ''));
+                setCopied(true);
+                setTimeout(() => setCopied(false), 2000);
+              };
+
+              const handleCodeFullscreen = (code) => {
+                const newWindow = window.open('', '_blank');
+                newWindow.document.write(`
+                  <html>
+                    <head>
+                      <style>
+                        body { margin: 0; padding: 2rem; background: ${themeMode === 1 ? '#1e1e1e' : '#fff'}; }
+                        pre { font-size: 1.2em; }
+                      </style>
+                    </head>
+                    <body>
+                      <pre>${code}</pre>
+                    </body>
+                  </html>
+                `);
+              };
+
+              return !inline && match ? (
+                <div className="code-block-wrapper">
+                  <div className="code-header">
+                    <span>{match[1]}</span>
+                    <div>
+                      <button onClick={() => handleCodeFullscreen(children)} className="fullscreen-button">
+                        ↗
+                      </button>
+                      <button onClick={copyToClipboard} className="copy-button">
+                        {copied ? '✓ Copied' : 'Copy'}
+                      </button>
+                    </div>
+                  </div>
+                  <SyntaxHighlighter
+                    style={vscDarkPlus}
+                    language={match[1]}
+                    PreTag="div"
+                    {...props}
+                  >
+                    {String(children).replace(/\n$/, '')}
+                  </SyntaxHighlighter>
+                </div>
+              ) : (
+                <code className={className} {...props}>
+                  {children}
+                </code>
+              );
+            }
+          }}
+        >
+          {content}
+        </ReactMarkdown>
+      </div>
+    </motion.div>
+  );
 
   return (
     <ThemeProvider theme={createTheme({ palette: { mode: themeMode === 1 ? 'dark' : 'light' } })}>
-      <div className={`app ${
-        themeMode === 0 ? 'light-theme' : 
-        themeMode === 1 ? 'dark-theme' : 
-        'system-theme'
-      }`}>
-        <Sidebar
-          ref={sidebarRef}
-          isPanelOpen={isPanelOpen}
-          setIsPanelOpen={setIsPanelOpen}
-          selectedModel={selectedModel}
-          setSelectedModel={setSelectedModel}
-          chats={chats}
-          setChats={setChats}
-          activeSession={activeSession}
-          setActiveSession={setActiveSession}
-          themeMode={themeMode}
-          setThemeMode={(mode) => {
-            setThemeMode(mode);
-            localStorage.setItem('themeMode', mode.toString());
-          }}
-        />
-
-        {/* Кнопка переключения панели */}
-        <PanelToggleButton isPanelOpen={isPanelOpen} />
-
-        {/* Основное содержимое */}
-        <main 
-          className={`main-content ${isPanelOpen ? 'sidebar-open' : ''} ${isPanelOpen ? '' : 'full-width'}`}
-          onClick={() => window.innerWidth <= 768 && closeSidebar()}
-        >
-          <div className="chat-container" ref={chatContainerRef}>
-            <div className="messages-container">
-              <AnimatePresence>
-                {(!activeSession || showWelcome) && (
-                  <motion.div
-                    className="welcome-message"
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -20 }}
-                    transition={{ duration: 0.3 }}
-                  >
-                    <h1>Добро пожаловать!</h1>
-                    <p>Начните новый диалог с моделью</p>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-
-              {activeSession && (chats[activeSession]?.messages || []).map((msg, index) => {
-                return (
-                <Message
-                  key={msg.id || `${activeSession}-${index}`}
-                  content={msg.content}
-                  isUser={msg.isUser}
-                  imageUrl={msg.imageUrl}
-                  aiImages={msg.aiImages}
-                  model={chats[activeSession]?.model}
-                  isStreaming={msg.isStreaming}
-                />
-                );
-              })}
-              <div ref={messagesEndRef} />
-            </div>
+      <div className={`app ${themeMode === 0 ? 'light-theme' : themeMode === 1 ? 'dark-theme' : 'system-theme'}`}>
+        {isAuthLoading ? (
+          <div className="loading-screen">
+            <div className="spinner"></div>
           </div>
-        </main>
-
-        {/* Поле ввода */}
-        {inputPosition === 'center' ? (
-          <div className="welcome-input-container">
-            <MessageInputContainer
-              input={input}
-              onInputChange={(e) => setInput(e.target.value)}
-              onSend={() => {
-                sendMessage();
-                setInputPosition('bottom');
-              }}
-              isLoading={isLoading}
-              centered
-              onFileUpload={(file) => {
-                const reader = new FileReader();
-                reader.onload = (event) => {
-                  setInput(prev => prev + `\n![${file.name}](${event.target.result})`);
-                };
-                reader.readAsDataURL(file);
+        ) : user ? (
+          <>
+            <Sidebar
+              user={user}
+              ref={sidebarRef}
+              isPanelOpen={isPanelOpen}
+              setIsPanelOpen={setIsPanelOpen}
+              selectedModel={selectedModel}
+              setSelectedModel={setSelectedModel}
+              chats={chats}
+              setChats={setChats}
+              activeSession={activeSession}
+              setActiveSession={setActiveSession}
+              themeMode={themeMode}
+              setThemeMode={(mode) => {
+                setThemeMode(mode);
+                localStorage.setItem('themeMode', mode.toString());
               }}
             />
-          </div>
+
+            <PanelToggleButton isPanelOpen={isPanelOpen} />
+
+            <main 
+              className={`main-content ${isPanelOpen ? 'sidebar-open' : ''} ${isPanelOpen ? '' : 'full-width'}`}
+              onClick={() => window.innerWidth <= 768 && closeSidebar()}
+            >
+              <div className="chat-container" ref={chatContainerRef}>
+                <div className="messages-container">
+                  <AnimatePresence>
+                    {(!activeSession || showWelcome) && (
+                      <motion.div
+                        className="welcome-message"
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -20 }}
+                        transition={{ duration: 0.3 }}
+                      >
+                        <h1>Добро пожаловать, {user.displayName}!</h1>
+                        <p>Начните новый диалог с моделью</p>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+
+                  {activeSession && (chats[activeSession]?.messages || []).map((msg) => (
+                    <Message
+                      key={msg.id}
+                      content={msg.content}
+                      isUser={msg.isUser}
+                      imageUrl={msg.imageUrl}
+                      aiImages={msg.aiImages}
+                      model={chats[activeSession]?.model}
+                      isStreaming={msg.isStreaming}
+                    />
+                  ))}
+                  <div ref={messagesEndRef} />
+                </div>
+              </div>
+            </main>
+
+            {inputPosition === 'center' ? (
+              <div className="welcome-input-container">
+                <MessageInputContainer
+                  input={input}
+                  onInputChange={(e) => setInput(e.target.value)}
+                  onSend={() => {
+                    sendMessage();
+                    setInputPosition('bottom');
+                  }}
+                  isLoading={isLoading}
+                  centered
+                  onFileUpload={(file) => {
+                    const reader = new FileReader();
+                    reader.onload = (event) => {
+                      setInput(prev => prev + `\n![${file.name}](${event.target.result})`);
+                    };
+                    reader.readAsDataURL(file);
+                  }}
+                />
+              </div>
+            ) : (
+              <MessageInputContainer
+                input={input}
+                onInputChange={(e) => setInput(e.target.value)}
+                onSend={sendMessage}
+                isLoading={isLoading}
+                onFileUpload={(file) => {
+                  const reader = new FileReader();
+                  reader.onload = (event) => {
+                    setInput(prev => prev + `\n![${file.name}](${event.target.result})`);
+                  };
+                  reader.readAsDataURL(file);
+                }}
+              />
+            )}
+          </>
         ) : (
-          <MessageInputContainer
-            input={input}
-            onInputChange={(e) => setInput(e.target.value)}
-            onSend={sendMessage}
-            isLoading={isLoading}
-            onFileUpload={(file) => {
-              const reader = new FileReader();
-              reader.onload = (event) => {
-                setInput(prev => prev + `\n![${file.name}](${event.target.result})`);
-              };
-              reader.readAsDataURL(file);
-            }}
-          />
+          <div className="auth-container">
+            <div className="auth-card">
+              <h2>Добро пожаловать в DeepSeek Chat</h2>
+              <p>Для начала работы войдите с помощью Google</p>
+              <AuthButton user={user} />
+            </div>
+          </div>
         )}
       </div>
     </ThemeProvider>
   );
 }
-
-// Компонент Message
-const Message = ({ content, isUser, imageUrl, aiImages, model, isStreaming }) => (
-  <motion.div
-    className={`message ${isUser ? 'user' : 'ai'} ${isStreaming ? 'streaming' : ''}`}
-    initial={{ opacity: 0, y: 20 }}
-    animate={{ opacity: 1, y: 0 }}
-  >
-    {isStreaming && (
-      <div className="streaming-indicator">
-        <div className="typing-animation">
-          <div className="dot"></div>
-          <div className="dot"></div>
-          <div className="dot"></div>
-        </div>
-      </div>
-    )}
-    <div className="message-header">
-      {isUser ? 'Вы' : LLM_MODELS.find(m => m.modelId === model)?.name || 'AI'}
-    </div>
-    <div className="message-bubble">
-      {imageUrl && <img src={imageUrl} alt="Uploaded content" className="message-image" />}
-      {aiImages?.map((img, i) => (
-        <img key={i} src={img} alt={`Generated content ${i}`} className="message-image" />
-      ))}
-      <ReactMarkdown
-        remarkPlugins={[remarkMath]}
-        rehypePlugins={[rehypeKatex]}
-        components={{
-          code({ inline, className, children, node, ...props }) {
-            const match = /language-(\w+)/.exec(className || '');
-            const [copied, setCopied] = useState(false);
-
-            const copyToClipboard = () => {
-              navigator.clipboard.writeText(String(children).replace(/\n$/, ''));
-              setCopied(true);
-              setTimeout(() => setCopied(false), 2000);
-            };
-
-            const handleCodeFullscreen = (code) => {
-              const newWindow = window.open('', '_blank');
-              newWindow.document.write(`
-                <html>
-                  <head>
-                    <style>
-                      body { margin: 0; padding: 2rem; background: ${themeMode === 1 ? '#1e1e1e' : '#fff'}; }
-                      pre { font-size: 1.2em; }
-                    </style>
-                  </head>
-                  <body>
-                    <pre>${code}</pre>
-                  </body>
-                </html>
-              `);
-            };
-
-            return !inline && match ? (
-              <div className="code-block-wrapper">
-                <div className="code-header">
-                  <span>{match[1]}</span>
-                  <div>
-                    <button onClick={() => handleCodeFullscreen(children)} className="fullscreen-button">
-                      ↗
-                    </button>
-                    <button onClick={copyToClipboard} className="copy-button">
-                      {copied ? '✓ Copied' : 'Copy'}
-                    </button>
-                  </div>
-                </div>
-                <SyntaxHighlighter
-                  style={vscDarkPlus}
-                  language={match[1]}
-                  PreTag="div"
-                  {...props}
-                >
-                  {String(children).replace(/\n$/, '')}
-                </SyntaxHighlighter>
-              </div>
-            ) : (
-              <code className={className} {...props}>
-                {children}
-              </code>
-            );
-          }
-        }}
-      >
-        {content}
-      </ReactMarkdown>
-    </div>
-  </motion.div>
-);
 
 export default App;
