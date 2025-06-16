@@ -411,6 +411,13 @@ function App() {
 
   // Компонент Message
   const Message = React.memo(({ content, isUser, imageUrl, aiImages, model, isStreaming, userPhotoURL }) => {
+  const modelData = model || {
+    id: 'unknown',
+    name: 'Unknown Model',
+    color: '#999',
+    icon: '/models/unknown.png'
+  };
+
   return (
     <div className={`message ${isUser ? 'user' : 'ai'}`}>
       <div className="message-header">
@@ -422,14 +429,15 @@ function App() {
         ) : (
           <div className="model-info">
             <img 
-              src={`/models/${model.id}.png`} 
-              alt={model.name}
+              src={`/models/${modelData.id}.png`} 
+              alt={modelData.name}
               className="model-icon"
             />
-            <span>{model.name}</span>
+            <span>{modelData.name}</span>
           </div>
         )}
       </div>
+
       
       <div className="message-content">
         <ReactMarkdown
@@ -570,7 +578,10 @@ function App() {
                   </AnimatePresence>
 
                   {activeSession && (chats[activeSession]?.messages || []).map((msg) => {
-  const modelObj = LLM_MODELS.find(m => m.modelId === chats[activeSession]?.model) || LLM_MODELS[0];
+  // Добавляем проверку на существование модели в сессии
+  const sessionModel = chats[activeSession]?.model;
+  const modelObj = LLM_MODELS.find(m => m.modelId === sessionModel) || LLM_MODELS[0];
+  
   return (
     <Message
       key={msg.id}
@@ -578,7 +589,7 @@ function App() {
       isUser={msg.isUser}
       imageUrl={msg.imageUrl}
       aiImages={msg.aiImages}
-      model={modelObj}
+      model={modelObj} // передаем всегда валидный объект
       isStreaming={msg.isStreaming}
       userPhotoURL={user?.photoURL}
     />
