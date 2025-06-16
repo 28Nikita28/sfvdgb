@@ -411,27 +411,38 @@ function App() {
 
   // Компонент Message
   const Message = React.memo(({ content, isUser, imageUrl, aiImages, model, isStreaming, userPhotoURL }) => {
-  const modelData = model || {
+  const handleImageError = (e) => {
+    e.target.src = '/models/unknown.png'; // Fallback иконка
+  };
+  
+    const modelData = model || {
     id: 'unknown',
     name: 'Unknown Model',
     color: '#999',
     icon: '/models/unknown.png'
   };
+  
 
-  return (
+   return (
     <div className={`message ${isUser ? 'user' : 'ai'}`}>
       <div className="message-header">
         {isUser ? (
           <div className="message-user-info">
-            <img src={userPhotoURL} alt="User" className="message-avatar" />
+            <img 
+              src={userPhotoURL || '/default-user.png'} 
+              alt="User" 
+              className="message-avatar"
+              onError={handleImageError}
+            />
             <span>Вы</span>
           </div>
         ) : (
           <div className="model-info">
             <img 
-              src={`/models/${modelData.id}.png`} 
+              src={modelData.icon || `/models/${modelData.id}.png`} 
               alt={modelData.name}
               className="model-icon"
+              onError={handleImageError}
             />
             <span>{modelData.name}</span>
           </div>
