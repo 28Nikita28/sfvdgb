@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useOnClickOutside } from './hooks/useOnClickOutside';
 import MessageInputContainer from './components/MessageInputContainer';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -22,67 +22,78 @@ const LLM_MODELS = [
     id: 'deepseek',
     name: "DeepSeek",
     modelId: 'deepseek',
-    color: '#4D8EFF'
+    color: '#4D8EFF',
+    icon: '/models/deepseek.png'
   },
   {
     id: 'deepseek-r1',
     name: "DeepSeek-r1",
     modelId: 'deepseek-r1',
-    color: '#FF6B6B'
+    color: '#FF6B6B',
+    icon: '/models/deepseek.png'
   },
   {
     id: 'deepseek-v3',
     name: "DeepSeek-v3",
     modelId: 'deepseek-v3',
-    color: '#99FF6B'
+    color: '#99FF6B',
+    icon: '/models/deepseek.png'
   },
   {
     id: 'gemini',
     name: "Gemini",
     modelId: 'gemini',
-    color: '#D9534F'
+    color: '#D9534F',
+    icon: '/models/gemini.png'
   },
   {
     id: "gemma",
     name: "Gemma",
     modelId: "gemma",
-    color: '#FF6B6B'
+    color: '#FF6B6B',
+    icon: '/models/gemma.png'
   },
   {
     id: 'qwen',
     name: "Qwen",
     modelId: 'qwen',
-    color: '#7F52FF'
+    color: '#7F52FF',
+    icon: '/models/qwen3 235b.png'
   },
   {
     id: "qwen 2.5",
     name: "Qwen 2.5",
     modelId: "qwen 2.5",
-    color: '#7DFF6B'
+    color: '#7DFF6B',
+    icon: '/models/llama-4-scout.png'
   },
   {
     id: 'llama-4-maverick',
     name: "Llama-4-Maverick",
     modelId: 'llama-4-maverick',
-    color: '#99FF6B'
+    color: '#99FF6B',
+    icon: '/models/llama-4-scout.png'
   },
   {
     id: "llama-4-scout",
     name: "Llama-4-Scout",
     modelId: "llama-4-scout",
-    color: '#1DFF6B'
+    color: '#1DFF6B',
+    icon: '/models/qwen3 235b.png'
   },
   {
-    id: '"deepseek-r1-free"',
+    id: "deepseek-r1-free",
     name: "DeepSeek-r1-free",
-    modelId: '"deepseek-r1-free"',
-    color: '#8SFF6B'
+    modelId: "deepseek-r1-free",
+    color: '#99FF6B',
+    icon: '/models/deepseek-r1-free.png'
   },
   {
     id: "qwen3 235b",
     name: "Qwen-3 235b",
     modelId: "qwen3 235b",
-    color: '#7F52FF'
+    color: '#7F52FF',
+    icon: '/models/qwen3 235b.png'
   },
 ];
 
@@ -281,101 +292,105 @@ function App() {
       const decoder = new TextDecoder();
       let accumulatedContent = '';
 
-      const processStream = async ({ done, value }) => {
-        if (done) {
-          setChats(prev => {
-            const newMessages = [...prev[activeSession].messages];
-            const aiMessageIndex = newMessages.findIndex(msg => msg.id === tempAiMessage.id);
+      // Захватываем текущие значения
+      const currentSessionId = activeSession;
+      const tempAiMessageId = tempAiMessage.id;
+
+  const processStream = async ({ done, value }) => {
+      if (done) {
+        setChats(prev => {
+          const newChats = {...prev};
+          if (newChats[currentSessionId]) {
+            const messages = [...newChats[currentSessionId].messages];
+            const aiIndex = messages.findIndex(m => m.id === tempAiMessageId);
             
-            if (aiMessageIndex !== -1) {
-              newMessages[aiMessageIndex] = {
-                ...newMessages[aiMessageIndex],
+            if (aiIndex !== -1) {
+              messages[aiIndex] = {
+                ...messages[aiIndex],
                 content: accumulatedContent,
                 isStreaming: false
               };
             }
-
-            return {
-              ...prev,
-              [activeSession]: {
-                ...prev[activeSession],
-                messages: newMessages
-              }
+            newChats[currentSessionId] = {
+              ...newChats[currentSessionId],
+              messages
             };
-          });
-          return;
-        }
+          }
+          return newChats;
+        });
+        return;
+      }
 
-        const chunk = decoder.decode(value);
-        const lines = chunk.split('\n\n').filter(line => line.trim());
-        
-        for (const line of lines) {
-          if (line.startsWith('data: ')) {
-            const data = line.replace('data: ', '');
-            if (data === '[DONE]') {
-              await processStream({ done: true, value: undefined });
-              return;
-            }
+      const chunk = decoder.decode(value);
+      const lines = chunk.split('\n\n').filter(line => line.trim());
+      
+      for (const line of lines) {
+        if (line.startsWith('data: ')) {
+          const data = line.replace('data: ', '');
+          if (data === '[DONE]') {
+            await processStream({ done: true, value: undefined });
+            return;
+          }
+          
+          try {
+            const parsed = JSON.parse(data);
+            accumulatedContent += parsed.content;
             
-            try {
-              const parsed = JSON.parse(data);
-              accumulatedContent += parsed.content;
-              
-              setChats(prev => {
-                const newMessages = [...prev[activeSession].messages];
-                const aiMessageIndex = newMessages.findIndex(msg => msg.id === tempAiMessage.id);
+            setChats(prev => {
+              const newChats = {...prev};
+              if (newChats[currentSessionId]) {
+                const messages = [...newChats[currentSessionId].messages];
+                const aiIndex = messages.findIndex(m => m.id === tempAiMessageId);
                 
-                if (aiMessageIndex !== -1) {
-                  newMessages[aiMessageIndex] = {
-                    ...newMessages[aiMessageIndex],
+                if (aiIndex !== -1) {
+                  messages[aiIndex] = {
+                    ...messages[aiIndex],
                     content: accumulatedContent
                   };
+                  newChats[currentSessionId] = {
+                    ...newChats[currentSessionId],
+                    messages
+                  };
                 }
-
-                return {
-                  ...prev,
-                  [activeSession]: {
-                    ...prev[activeSession],
-                    messages: newMessages
-                  }
-                };
-              });
-              
-              scrollToBottom();
-            } catch (e) {
-              console.error('Error parsing stream chunk:', e);
-            }
+              }
+              return newChats;
+            });
+            
+            scrollToBottom();
+          } catch (e) {
+            console.error('Error parsing stream chunk:', e);
           }
         }
+      }
 
-        return reader.read().then(processStream);
-      };
+      return reader.read().then(processStream);
+    };
 
-      reader.read().then(processStream);
-      scrollToBottom();
-    } catch (error) {
-      console.error('Error:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    reader.read().then(processStream);
+    scrollToBottom();
+  } catch (error) {
+    console.error('Error:', error);
+  } finally {
+    setIsLoading(false);
+  }
+};
 
   // Прокрутка к последнему сообщению
   const scrollToBottom = useCallback(() => {
-    if (messagesEndRef.current) {
-      const container = chatContainerRef.current;
-      const isNearBottom = 
-        container.scrollHeight - container.scrollTop <= container.clientHeight + 100;
-      
-      if (isNearBottom) {
-        messagesEndRef.current.scrollIntoView({
-          behavior: 'auto',
-          block: 'nearest',
-          inline: 'start'
-        });
-      }
+  if (messagesEndRef.current) {
+    const container = chatContainerRef.current;
+    const isNearBottom = 
+      container.scrollHeight - container.scrollTop <= container.clientHeight + 200;
+    
+    if (isNearBottom) {
+      messagesEndRef.current.scrollIntoView({
+        behavior: 'smooth',
+        block: 'end',
+        inline: 'nearest'
+      });
     }
-  }, []);
+  }
+}, []);
 
   useEffect(() => {
     setTimeout(scrollToBottom, 50);
@@ -395,108 +410,74 @@ function App() {
   );
 
   // Компонент Message
-  const Message = ({ content, isUser, imageUrl, aiImages, model, isStreaming }) => (
-    <motion.div
-      className={`message ${isUser ? 'user' : 'ai'} ${isStreaming ? 'streaming' : ''}`}
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-    >
-      {isStreaming && (
-        <div className="streaming-indicator">
-          <div className="typing-animation">
-            <div className="dot"></div>
-            <div className="dot"></div>
-            <div className="dot"></div>
-          </div>
-        </div>
-      )}
+  const Message = React.memo(({ content, isUser, imageUrl, aiImages, model, isStreaming, userPhotoURL }) => {
+  return (
+    <div className={`message ${isUser ? 'user' : 'ai'}`}>
       <div className="message-header">
         {isUser ? (
           <div className="message-user-info">
-            {user?.photoURL && (
-              <img 
-                src={user.photoURL} 
-                alt={user.displayName} 
-                className="message-avatar"
-              />
-            )}
+            <img src={userPhotoURL} alt="User" className="message-avatar" />
             <span>Вы</span>
           </div>
         ) : (
-          LLM_MODELS.find(m => m.modelId === model)?.name || 'AI'
+          <div className="model-info">
+            <img 
+              src={`/models/${model.id}.png`} 
+              alt={model.name}
+              className="model-icon"
+            />
+            <span>{model.name}</span>
+          </div>
         )}
       </div>
-      <div className="message-bubble">
-        {imageUrl && <img src={imageUrl} alt="Uploaded content" className="message-image" />}
-        {aiImages?.map((img, i) => (
-          <img key={i} src={img} alt={`Generated content ${i}`} className="message-image" />
-        ))}
+      
+      <div className="message-content">
         <ReactMarkdown
-          remarkPlugins={[remarkMath]}
-          rehypePlugins={[rehypeKatex]}
           components={{
-            code({ inline, className, children, ...props }) {
+            code({ node, inline, className, children, ...props }) {
               const match = /language-(\w+)/.exec(className || '');
-              const [copied, setCopied] = useState(false);
-
-              const copyToClipboard = () => {
-                navigator.clipboard.writeText(String(children).replace(/\n$/, ''));
-                setCopied(true);
-                setTimeout(() => setCopied(false), 2000);
-              };
-
-              const handleCodeFullscreen = (code) => {
-                const newWindow = window.open('', '_blank');
-                newWindow.document.write(`
-                  <html>
-                    <head>
-                      <style>
-                        body { margin: 0; padding: 2rem; background: ${themeMode === 1 ? '#1e1e1e' : '#fff'}; }
-                        pre { font-size: 1.2em; }
-                      </style>
-                    </head>
-                    <body>
-                      <pre>${code}</pre>
-                    </body>
-                  </html>
-                `);
-              };
-
               return !inline && match ? (
-                <div className="code-block-wrapper">
-                  <div className="code-header">
-                    <span>{match[1]}</span>
-                    <div>
-                      <button onClick={() => handleCodeFullscreen(children)} className="fullscreen-button">
-                        ↗
-                      </button>
-                      <button onClick={copyToClipboard} className="copy-button">
-                        {copied ? '✓ Copied' : 'Copy'}
-                      </button>
-                    </div>
-                  </div>
-                  <SyntaxHighlighter
-                    style={vscDarkPlus}
-                    language={match[1]}
-                    PreTag="div"
-                    {...props}
-                  >
-                    {String(children).replace(/\n$/, '')}
-                  </SyntaxHighlighter>
-                </div>
+                <SyntaxHighlighter
+                  style={vscDarkPlus}
+                  language={match[1]}
+                  PreTag="div"
+                  {...props}
+                >
+                  {String(children).replace(/\n$/, '')}
+                </SyntaxHighlighter>
               ) : (
                 <code className={className} {...props}>
                   {children}
                 </code>
               );
-            }
+            },
+            img: ({ src, alt }) => (
+              <img 
+                src={src} 
+                alt={alt} 
+                className="message-image"
+                loading="lazy"
+              />
+            ),
+            table: ({ children }) => (
+              <div className="table-container">
+                <table>{children}</table>
+              </div>
+            )
           }}
         >
           {content}
         </ReactMarkdown>
+        
+        {isStreaming && (
+          <div className="streaming-indicator">
+            <div className="dot-flashing"></div>
+          </div>
+        )}
       </div>
-    </motion.div>
+    </div>
   );
+});
 
   return (
     <ThemeProvider theme={createTheme({ palette: { mode: themeMode === 1 ? 'dark' : 'light' } })}>
@@ -588,18 +569,22 @@ function App() {
                     )}
                   </AnimatePresence>
 
-                  {activeSession && (chats[activeSession]?.messages || []).map((msg) => (
-                    <Message
-                      key={msg.id}
-                      content={msg.content}
-                      isUser={msg.isUser}
-                      imageUrl={msg.imageUrl}
-                      aiImages={msg.aiImages}
-                      model={chats[activeSession]?.model}
-                      isStreaming={msg.isStreaming}
-                    />
-                  ))}
-                  <div ref={messagesEndRef} />
+                  {activeSession && (chats[activeSession]?.messages || []).map((msg) => {
+  const modelObj = LLM_MODELS.find(m => m.modelId === chats[activeSession]?.model) || LLM_MODELS[0];
+  return (
+    <Message
+      key={msg.id}
+      content={msg.content}
+      isUser={msg.isUser}
+      imageUrl={msg.imageUrl}
+      aiImages={msg.aiImages}
+      model={modelObj}
+      isStreaming={msg.isStreaming}
+      userPhotoURL={user?.photoURL}
+    />
+  );
+})}
+                  <div ref={messagesEndRef} className="messages-end-anchor" />
                 </div>
               </div>
             </main>

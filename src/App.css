@@ -54,8 +54,6 @@
   --input: 240 5.9% 90%;
   --ring: 0 0% 0%;
   
-  /* Плавные переходы */
-  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
 }
 
 .dark {
@@ -1121,7 +1119,6 @@ html, body {
 }
 
 .message.ai .message-bubble > * {
-  animation: appear 0.1s ease forwards;
   opacity: 0;
 }
 
@@ -1158,13 +1155,26 @@ html, body {
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
+  from { 
+    opacity: 0;
+    transform: translateY(5px);
+  }
+  to { 
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.95; }
+  50% { opacity: 1; }
 }
 
 .message {
-  animation: fadeIn 0.3s ease-out;
+  animation: fadeIn 0.2s ease-out forwards;
+  will-change: opacity, transform;
 }
+
 
 /* New styles for image support */
 .message-image img {
@@ -1450,7 +1460,11 @@ html, body {
 
 /* Фикс для пустого пространства */
 .messages-container {
-  padding-bottom: 120px; /* Высота поля ввода + отступ */
+  padding-bottom: 120px; /* Добавьте этот отступ */
+}
+
+.messages-end-anchor {
+  height: 1px; /* Убедитесь что якорь имеет высоту */
 }
 
 .message-input-container {
@@ -1458,10 +1472,6 @@ html, body {
   backdrop-filter: blur(8px);
 }
 
-/* Плавные переходы для сообщений */
-.message {
-  transition: opacity 0.3s ease, transform 0.3s ease;
-}
 
 .message.streaming {
   opacity: 0.9;
@@ -1776,20 +1786,11 @@ html, body {
   }
 }
 
-/* Улучшенные стили для AI сообщений */
-.message.ai .message-bubble {
-  background: linear-gradient(135deg, rgba(77, 107, 254, 0.12), rgba(77, 107, 254, 0.05));
-  border-left: 4px solid var(--dsr-main);
-  border-radius: 12px;
-  padding: 1.5rem;
-  transition: all 0.3s ease;
-}
-
-/* Стиль активного потока */
-.message.ai.streaming .message-bubble {
-  background: rgba(77, 107, 254, 0.08);
-  border-left: 4px solid #4d6bfe;
-  animation: pulse 1.5s infinite;
+/* Отключите анимации на мобильных */
+@media (max-width: 768px) {
+  .message {
+    animation: none !important;
+  }
 }
 
 @keyframes pulse {
@@ -2235,4 +2236,554 @@ html, body {
 
 .menu-item:hover {
   background: rgba(var(--bg-active));
+}
+/* Добавим в конец файла */
+/* Улучшенная Markdown разметка */
+.message-bubble p {
+  margin: 0.5em 0;
+  line-height: 1.6;
+}
+
+.message-bubble ul, 
+.message-bubble ol {
+  padding-left: 1.5em;
+  margin: 0.5em 0;
+}
+
+.message-bubble li {
+  margin: 0.25em 0;
+}
+
+.message-bubble blockquote {
+  border-left: 3px solid rgba(var(--accent-color), 0.5);
+  padding-left: 1em;
+  margin: 0.5em 0;
+  color: rgb(var(--text-secondary));
+}
+
+.message-bubble .inline-code {
+  font-family: 'Fira Code', monospace;
+  background: rgba(var(--bg-active), 0.3);
+  padding: 0.2em 0.4em;
+  border-radius: 4px;
+  font-size: 0.9em;
+  border: 1px solid rgba(var(--border-primary), 0.2);
+}
+
+.message-bubble pre {
+  background: rgba(40, 40, 40, 0.9) !important;
+  padding: 1em !important;
+  border-radius: 8px !important;
+  overflow-x: auto;
+}
+
+.message-bubble table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 1em 0;
+}
+
+.message-bubble th, 
+.message-bubble td {
+  border: 1px solid rgb(var(--border-primary));
+  padding: 0.5em;
+}
+
+.message-bubble th {
+  background: rgba(var(--bg-active), 0.3);
+}
+
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Стиль для сообщений */
+.message {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 1rem;
+  max-width: 800px;
+  width: 100%;
+}
+
+.message.user .message-bubble {
+  background-color: rgba(88, 101, 242, 0.1);
+  align-self: flex-end;
+}
+
+.message.ai .message-bubble {
+  background-color: rgba(255, 255, 255, 0.05);
+  align-self: flex-start;
+}
+
+.message-bubble {
+  padding: 1rem 1.5rem;
+  border-radius: 1rem;
+  font-size: 1rem;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-break: break-word;
+  transition: background 0.3s ease;
+  border: 1px solid rgba(255,255,255,0.1);
+}
+
+.message-header {
+  font-size: 0.8rem;
+  margin-bottom: 0.25rem;
+  color: #888;
+}
+/* Упрощенные стили сообщений */
+.message {
+  max-width: min(90%, 800px);
+  margin: 1rem auto;
+  padding: 1.2rem;
+  border-radius: 12px;
+  background: var(--message-bg);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  transition: all 0.3s ease;
+}
+
+.message.user {
+  background: var(--user-message-bg);
+  margin-left: auto;
+}
+
+.message-content {
+  line-height: 1.6;
+  font-size: 16px;
+}
+
+/* Анимация ввода текста */
+.dot-flashing {
+  position: relative;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: #888;
+  color: #888;
+  animation: dotFlashing 1s infinite linear alternate;
+  animation-delay: 0.5s;
+}
+
+.dot-flashing::before, .dot-flashing::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: #888;
+  color: #888;
+  animation: dotFlashing 1s infinite alternate;
+}
+
+.dot-flashing::before {
+  left: -10px;
+  animation-delay: 0s;
+}
+
+.dot-flashing::after {
+  left: 10px;
+  animation-delay: 1s;
+}
+
+@keyframes dotFlashing {
+  0% { opacity: 0.2; }
+  100% { opacity: 1; }
+}
+
+/* Компактные сессии */
+.session-item {
+  display: flex;
+  padding: 0.8rem;
+  margin-bottom: 0.5rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.session-item:hover {
+  background: rgba(255,255,255,0.1);
+}
+
+.session-item.active {
+  background: rgba(77, 107, 254, 0.2);
+}
+
+.model-icon-sm {
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+  object-fit: contain;
+}
+
+.session-info {
+  flex: 1;
+  margin-left: 10px;
+  overflow: hidden;
+}
+
+.session-preview {
+  font-size: 0.9rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.session-meta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.75rem;
+  color: #888;
+  margin-top: 4px;
+}
+
+/* Фикс для ряби и смещения */
+.message-content {
+  overflow-anchor: none;
+}
+
+.messages-end-anchor {
+  overflow-anchor: auto;
+  height: 1px;
+}
+
+/* Улучшение для Markdown */
+.message-content p {
+  margin: 0.5em 0;
+  line-height: 1.6;
+}
+
+.message-content ul, 
+.message-content ol {
+  padding-left: 1.5em;
+  margin: 0.5em 0;
+}
+
+.message-content li {
+  margin: 0.25em 0;
+}
+
+.message-content blockquote {
+  border-left: 3px solid rgba(77, 107, 254, 0.5);
+  padding-left: 1em;
+  margin: 0.5em 0;
+  color: rgb(var(--text-secondary));
+}
+
+.message-content .inline-code {
+  font-family: 'Fira Code', monospace;
+  background: rgba(var(--bg-active), 0.3);
+  padding: 0.2em 0.4em;
+  border-radius: 4px;
+  font-size: 0.9em;
+  border: 1px solid rgba(var(--border-primary), 0.2);
+}
+
+.message-content pre {
+  background: rgba(40, 40, 40, 0.9) !important;
+  padding: 1em !important;
+  border-radius: 8px !important;
+  overflow-x: auto;
+}
+
+.message-content table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 1em 0;
+}
+
+.message-content th, 
+.message-content td {
+  border: 1px solid rgb(var(--border-primary));
+  padding: 0.5em;
+}
+
+.message-content th {
+  background: rgba(var(--bg-active), 0.3);
+}
+.model-icon {
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+  object-fit: contain;
+  margin-right: 8px;
+}
+
+.model-icon-sm {
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+}
+.session-item {
+  display: flex;
+  align-items: center;
+  padding: 8px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  margin-bottom: 4px;
+  position: relative;
+  transition: background-color 0.2s;
+}
+
+.session-item.active {
+  background-color: #f0f0f0;
+}
+
+.session-title {
+  flex-grow: 1;
+  font-size: 14px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding-right: 8px;
+}
+
+.session-actions {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.menu-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.menu-button:hover {
+  background-color: #e0e0e0;
+}
+
+.session-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background: white;
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  padding: 8px;
+  z-index: 10;
+  min-width: 100px;
+}
+
+.session-menu button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  width: 100%;
+  text-align: left;
+  padding: 4px 8px;
+}
+
+.session-menu button:hover {
+  background-color: #f5f5f5;
+}
+
+.session-model {
+  margin-left: 8px;
+}
+
+.model-color {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+}
+
+/* Упрощенный элемент сессии */
+.session-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 15px;
+  border-radius: 8px;
+  margin-bottom: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.session-item:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.session-item.active {
+  background-color: rgba(0, 0, 0, 0.08);
+}
+
+/* Основной текст сессии */
+.session-preview {
+  font-size: 14px;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding-right: 10px;
+}
+
+/* Мета-информация справа */
+.session-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.message-time {
+  font-size: 12px;
+  color: #888;
+  white-space: nowrap;
+}
+
+/* Иконка модели */
+.session-icon {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.model-icon-sm {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+/* Кнопка удаления/меню */
+.delete-session {
+  background: none;
+  border: none;
+  cursor: pointer;
+  opacity: 0.5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.delete-session:hover {
+  opacity: 1;
+  background-color: rgba(0, 0, 0, 0.1);
+}
+
+/* Уменьшаем общие отступы и размеры */
+.session-item {
+  padding: 6px 10px !important;
+  min-height: 36px !important;
+}
+
+/* Уменьшаем шрифт предпросмотра */
+.session-preview {
+  font-size: 12px !important;
+  line-height: 1.3;
+}
+
+/* Уменьшаем размер иконки модели */
+.session-icon {
+  width: 18px !important;
+  height: 18px !important;
+}
+
+.model-icon-sm {
+  width: 100%;
+  height: 100%;
+}
+
+/* Уменьшаем шрифт времени */
+.message-time {
+  font-size: 11px !important;
+}
+
+/* Уменьшаем кнопку меню */
+.delete-session {
+  width: 20px !important;
+  height: 20px !important;
+}
+
+.delete-session svg {
+  font-size: 16px !important;
+}
+
+/* Уменьшаем отступы между элементами */
+.session-meta {
+  gap: 6px !important;
+}
+
+/* Делаем активный элемент более компактным */
+.session-item.active {
+  padding: 5px 8px !important;
+}
+
+/* Убираем лишние отступы и выравниваем элементы */
+.session-item {
+  display: flex;
+  align-items: center;
+  padding: 6px 10px !important;
+  min-height: 36px !important;
+  gap: 8px; /* Расстояние между элементами */
+}
+
+/* Иконка модели слева */
+.session-icon {
+  flex-shrink: 0;
+  width: 18px !important;
+  height: 18px !important;
+}
+
+.model-icon-sm {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+/* Текст сообщения занимает всё доступное пространство */
+.session-preview {
+  flex: 1;
+  font-size: 12px !important;
+  line-height: 1.3;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding: 0 4px; /* Небольшой отступ от иконки */
+}
+
+/* Мета-информация справа (время и кнопка) */
+.session-meta {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  gap: 6px !important;
+}
+
+.message-time {
+  font-size: 11px !important;
+  color: #888;
+  white-space: nowrap;
+}
+
+.delete-session {
+  width: 20px !important;
+  height: 20px !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.delete-session svg {
+  font-size: 16px !important;
+}
+
+/* Стиль для активной сессии */
+.session-item.active {
+  background-color: rgba(77, 107, 254, 0.2);
+  padding: 5px 8px !important;
 }

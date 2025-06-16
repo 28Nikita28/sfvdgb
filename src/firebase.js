@@ -8,12 +8,13 @@ import {
   createUserWithEmailAndPassword as firebaseEmailSignUp,
   signOut
 } from 'firebase/auth';
+import { getFirestore } from 'firebase/firestore'; // Добавьте этот импорт
 
 const firebaseConfig = {
   apiKey: "AIzaSyAFpS7xH0-a6USzEBESBGYPJTQg3VVZEnE",
   authDomain: "w5model.firebaseapp.com",
   projectId: "w5model",
-  storageBucket: "w5model.firebasestorage.app",
+  storageBucket: "w5model.appspot.com",
   messagingSenderId: "675447198724",
   appId: "1:675447198724:web:b8f437b9c715a99ab8d151",
   measurementId: "G-ZZWW4N2HLR"
@@ -21,6 +22,7 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
+export const db = getFirestore(app); // Добавьте экспорт базы данных
 
 // Google провайдер
 const googleProvider = new GoogleAuthProvider();

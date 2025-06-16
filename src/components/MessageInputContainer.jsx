@@ -19,13 +19,15 @@ const MessageInputContainer = ({
   };
 
   useEffect(() => {
-    const textarea = textareaRef.current;
-    if (textarea) {
-      textarea.style.height = 'auto';
-      textarea.style.height = `${Math.min(textarea.scrollHeight, 200)}px`;
-      setIsExpanded(textarea.scrollHeight > 200);
-    }
-  }, [input]);
+  const textarea = textareaRef.current;
+  if (textarea) {
+    textarea.style.height = 'auto';
+    const maxHeight = 200;
+    const newHeight = Math.min(textarea.scrollHeight, maxHeight);
+    textarea.style.height = `${newHeight}px`;
+    setIsExpanded(newHeight >= maxHeight);
+  }
+}, [input]);
 
   return (
     <div className={`message-input-container ${isExpanded ? 'expanded' : ''}`}>
