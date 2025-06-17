@@ -22,78 +22,67 @@ const LLM_MODELS = [
     id: 'deepseek',
     name: "DeepSeek",
     modelId: 'deepseek',
-    color: '#4D8EFF',
-    icon: '/models/deepseek.png'
+    color: '#4D8EFF'
   },
   {
     id: 'deepseek-r1',
     name: "DeepSeek-r1",
     modelId: 'deepseek-r1',
-    color: '#FF6B6B',
-    icon: '/models/deepseek.png'
+    color: '#FF6B6B'
   },
   {
     id: 'deepseek-v3',
     name: "DeepSeek-v3",
     modelId: 'deepseek-v3',
-    color: '#99FF6B',
-    icon: '/models/deepseek.png'
+    color: '#99FF6B'
   },
   {
     id: 'gemini',
     name: "Gemini",
     modelId: 'gemini',
-    color: '#D9534F',
-    icon: '/models/gemini.png'
+    color: '#D9534F'
   },
   {
     id: "gemma",
     name: "Gemma",
     modelId: "gemma",
-    color: '#FF6B6B',
-    icon: '/models/gemma.png'
+    color: '#FF6B6B'
   },
   {
     id: 'qwen',
     name: "Qwen",
     modelId: 'qwen',
-    color: '#7F52FF',
-    icon: '/models/qwen3 235b.png'
+    color: '#7F52FF'
   },
   {
     id: "qwen 2.5",
     name: "Qwen 2.5",
     modelId: "qwen 2.5",
-    color: '#7DFF6B',
-    icon: '/models/llama-4-scout.png'
+    color: '#7DFF6B'
   },
   {
     id: 'llama-4-maverick',
     name: "Llama-4-Maverick",
     modelId: 'llama-4-maverick',
-    color: '#99FF6B',
-    icon: '/models/llama-4-scout.png'
+    color: '#99FF6B'
   },
   {
     id: "llama-4-scout",
     name: "Llama-4-Scout",
     modelId: "llama-4-scout",
-    color: '#1DFF6B',
-    icon: '/models/qwen3 235b.png'
+    color: '#1DFF6B'
   },
   {
     id: "deepseek-r1-free",
     name: "DeepSeek-r1-free",
     modelId: "deepseek-r1-free",
-    color: '#99FF6B',
-    icon: '/models/deepseek-r1-free.png'
+    color: '#99FF6B'
   },
   {
     id: "qwen3 235b",
     name: "Qwen-3 235b",
     modelId: "qwen3 235b",
-    color: '#7F52FF',
-    icon: '/models/qwen3 235b.png'
+    color: '#7F52FF'
   },
 ];
 
@@ -409,21 +398,44 @@ function App() {
     </motion.button>
   );
 
+  const ModelIcon = ({ modelId, color }) => {
+  const getInitial = () => {
+    if (!modelId) return '?';
+    const parts = modelId.split('-');
+    return parts.map(p => p[0]?.toUpperCase() || '').join('').slice(0, 2);
+  };
+
+  return (
+    <div 
+      className="model-icon" 
+      style={{ 
+        backgroundColor: color || '#999',
+        width: '24px',
+        height: '24px',
+        borderRadius: '4px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        color: 'white',
+        fontWeight: 'bold',
+        fontSize: '12px'
+      }}
+    >
+      {getInitial()}
+    </div>
+  );
+};
+
   // Компонент Message
   const Message = React.memo(({ content, isUser, imageUrl, aiImages, model, isStreaming, userPhotoURL }) => {
-  const handleImageError = (e) => {
-    e.target.src = '/models/unknown.png'; // Fallback иконка
-  };
-  
-    const modelData = model || {
+  // Fallback объект для модели
+  const modelData = model || {
     id: 'unknown',
     name: 'Unknown Model',
     color: '#999',
-    icon: '/models/unknown.png'
   };
-  
 
-   return (
+  return (
     <div className={`message ${isUser ? 'user' : 'ai'}`}>
       <div className="message-header">
         {isUser ? (
@@ -432,23 +444,22 @@ function App() {
               src={userPhotoURL || '/default-user.png'} 
               alt="User" 
               className="message-avatar"
-              onError={handleImageError}
+              onError={(e) => {
+                e.target.src = '/default-user.png';
+              }}
             />
             <span>Вы</span>
           </div>
         ) : (
           <div className="model-info">
-            <img 
-              src={modelData.icon || `/models/${modelData.id}.png`} 
-              alt={modelData.name}
-              className="model-icon"
-              onError={handleImageError}
+            <ModelIcon 
+              modelId={modelData.id} 
+              color={modelData.color} 
             />
             <span>{modelData.name}</span>
           </div>
         )}
       </div>
-
       
       <div className="message-content">
         <ReactMarkdown
@@ -498,7 +509,7 @@ function App() {
   );
 });
 
-  return (
+   return (
     <ThemeProvider theme={createTheme({ palette: { mode: themeMode === 1 ? 'dark' : 'light' } })}>
       <div className={`app ${themeMode === 0 ? 'light-theme' : themeMode === 1 ? 'dark-theme' : 'system-theme'}`}>
         {isAuthLoading ? (
@@ -590,8 +601,9 @@ function App() {
 
                   {activeSession && (chats[activeSession]?.messages || []).map((msg) => {
   // Добавляем проверку на существование модели в сессии
-  const sessionModel = chats[activeSession]?.model;
-  const modelObj = LLM_MODELS.find(m => m.modelId === sessionModel) || LLM_MODELS[0];
+  const modelObj = sessionModel 
+            ? LLM_MODELS.find(m => m.modelId === sessionModel) || LLM_MODELS[0]
+            : LLM_MODELS[0];
   
   return (
     <Message

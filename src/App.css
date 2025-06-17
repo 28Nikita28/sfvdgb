@@ -2787,3 +2787,16 @@ html, body {
   background-color: rgba(77, 107, 254, 0.2);
   padding: 5px 8px !important;
 }
+
+.model-icon {
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: bold;
+  font-size: 12px;
+  flex-shrink: 0;
+}
