@@ -427,8 +427,18 @@ function App() {
 };
 
   // Компонент Message
-  const Message = ({ model = {}, ...props }) => {
-  // Fallback объект для модели
+  const Message = (props) => {
+  // Извлекаем все необходимые пропсы с дефолтными значениями
+  const {
+    content = '', 
+    isUser = false, 
+    imageUrl = null, 
+    aiImages = [], 
+    model = {}, 
+    isStreaming = false, 
+    userPhotoURL = ''
+  } = props;
+
   const modelData = model || {
     id: 'unknown',
     name: 'Unknown Model',
@@ -441,10 +451,13 @@ function App() {
         {isUser ? (
           <div className="message-user-info">
             <img 
-  src={userPhotoURL || '/default-user.png'} 
-  alt="User"
-  className="message-avatar"
-/>
+              src={userPhotoURL || '/default-user.png'} 
+              alt="User" 
+              className="message-avatar"
+              onError={(e) => {
+                e.target.src = '/default-user.png';
+              }}
+            />
             <span>Вы</span>
           </div>
         ) : (
@@ -506,6 +519,7 @@ function App() {
   );
 }
 
+
    return (
     <ThemeProvider theme={createTheme({ palette: { mode: themeMode === 1 ? 'dark' : 'light' } })}>
       <div className={`app ${themeMode === 0 ? 'light-theme' : themeMode === 1 ? 'dark-theme' : 'system-theme'}`}>
@@ -526,10 +540,13 @@ function App() {
                   whileTap={{ scale: 0.95 }}
                 >
                   <img 
-                    src={user.photoURL} 
-                    alt={user.displayName} 
-                    className="user-avatar-toolbar"
-                  />
+  src={user.photoURL || '/default-user.png'} 
+  alt={user.displayName} 
+  className="user-avatar-toolbar"
+  onError={(e) => {
+    e.target.src = '/default-user.png';
+  }}
+/>
                 </motion.button>
                 
                 <AnimatePresence>
