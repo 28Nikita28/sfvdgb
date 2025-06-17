@@ -601,6 +601,7 @@ function App() {
 
                   {activeSession && (chats[activeSession]?.messages || []).map((msg) => {
   // Добавляем проверку на существование модели в сессии
+  const sessionModel = chats[activeSession]?.model;
   const modelObj = sessionModel 
             ? LLM_MODELS.find(m => m.modelId === sessionModel) || LLM_MODELS[0]
             : LLM_MODELS[0];
