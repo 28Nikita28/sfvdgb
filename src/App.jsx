@@ -398,7 +398,7 @@ function App() {
     </motion.button>
   );
 
-  const ModelIcon = ({ modelId, color }) => {
+  const ModelIcon = ({ modelId = '', color = '#999' }) => {
   const getInitial = () => {
     if (!modelId) return '?';
     const parts = modelId.split('-');
@@ -427,7 +427,7 @@ function App() {
 };
 
   // Компонент Message
-  const Message = React.memo(({ content, isUser, imageUrl, aiImages, model, isStreaming, userPhotoURL }) => {
+  const Message = ({ model = {}, ...props }) => {
   // Fallback объект для модели
   const modelData = model || {
     id: 'unknown',
@@ -441,13 +441,10 @@ function App() {
         {isUser ? (
           <div className="message-user-info">
             <img 
-              src={userPhotoURL || '/default-user.png'} 
-              alt="User" 
-              className="message-avatar"
-              onError={(e) => {
-                e.target.src = '/default-user.png';
-              }}
-            />
+  src={userPhotoURL || '/default-user.png'} 
+  alt="User"
+  className="message-avatar"
+/>
             <span>Вы</span>
           </div>
         ) : (
@@ -507,7 +504,7 @@ function App() {
       </div>
     </div>
   );
-});
+}
 
    return (
     <ThemeProvider theme={createTheme({ palette: { mode: themeMode === 1 ? 'dark' : 'light' } })}>
