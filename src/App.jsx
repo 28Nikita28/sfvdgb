@@ -427,8 +427,8 @@ function App() {
 };
 
   // Компонент Message
-  const Message = (props) => {
-  // Извлекаем все необходимые пропсы с дефолтными значениями
+  const Message = React.memo((props) => {
+  // Извлекаем пропсы с дефолтными значениями
   const {
     content = '', 
     isUser = false, 
@@ -439,6 +439,7 @@ function App() {
     userPhotoURL = ''
   } = props;
 
+  // Fallback объект для модели
   const modelData = model || {
     id: 'unknown',
     name: 'Unknown Model',
@@ -517,7 +518,7 @@ function App() {
       </div>
     </div>
   );
-}
+});
 
 
    return (
@@ -614,11 +615,12 @@ function App() {
                   </AnimatePresence>
 
                   {activeSession && (chats[activeSession]?.messages || []).map((msg) => {
-  // Добавляем проверку на существование модели в сессии
+  if (!msg) return null; // Защита от undefined
+  
   const sessionModel = chats[activeSession]?.model;
   const modelObj = sessionModel 
-            ? LLM_MODELS.find(m => m.modelId === sessionModel) || LLM_MODELS[0]
-            : LLM_MODELS[0];
+    ? LLM_MODELS.find(m => m.modelId === sessionModel) || LLM_MODELS[0]
+    : LLM_MODELS[0];
   
   return (
     <Message
@@ -627,7 +629,7 @@ function App() {
       isUser={msg.isUser}
       imageUrl={msg.imageUrl}
       aiImages={msg.aiImages}
-      model={modelObj} // передаем всегда валидный объект
+      model={modelObj}
       isStreaming={msg.isStreaming}
       userPhotoURL={user?.photoURL}
     />
