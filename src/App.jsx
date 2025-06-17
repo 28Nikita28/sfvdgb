@@ -428,7 +428,7 @@ function App() {
 
   // Компонент Message
   const Message = React.memo((props) => {
-  // Извлекаем пропсы с дефолтными значениями
+  // Защитные проверки для всех пропсов
   const {
     content = '', 
     isUser = false, 
@@ -474,6 +474,8 @@ function App() {
       
       <div className="message-content">
         <ReactMarkdown
+          remarkPlugins={[remarkMath]} // Добавлен remarkMath
+          rehypePlugins={[rehypeKatex]} // Добавлен rehypeKatex
           components={{
             code({ node, inline, className, children, ...props }) {
               const match = /language-(\w+)/.exec(className || '');
@@ -498,6 +500,9 @@ function App() {
                 alt={alt} 
                 className="message-image"
                 loading="lazy"
+                onError={(e) => {
+                  e.target.style.display = 'none';
+                }}
               />
             ),
             table: ({ children }) => (
@@ -509,6 +514,35 @@ function App() {
         >
           {content}
         </ReactMarkdown>
+        
+        {/* Обработка изображений пользователя */}
+        {isUser && imageUrl && (
+          <img 
+            src={imageUrl} 
+            alt="Uploaded content" 
+            className="message-image"
+            onError={(e) => {
+              e.target.style.display = 'none';
+            }}
+          />
+        )}
+        
+        {/* Обработка изображений ИИ */}
+        {!isUser && aiImages.length > 0 && (
+          <div className="ai-images-container">
+            {aiImages.map((img, index) => (
+              <img
+                key={index}
+                src={img}
+                alt={`AI generated image ${index + 1}`}
+                className="ai-image"
+                onError={(e) => {
+                  e.target.style.display = 'none';
+                }}
+              />
+            ))}
+          </div>
+        )}
         
         {isStreaming && (
           <div className="streaming-indicator">
@@ -535,20 +569,20 @@ function App() {
               
               <div className="user-menu-container" ref={userMenuRef}>
                 <motion.button
-                  className="user-avatar-button"
-                  onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  <img 
-  src={user.photoURL || '/default-user.png'} 
-  alt={user.displayName} 
-  className="user-avatar-toolbar"
-  onError={(e) => {
-    e.target.src = '/default-user.png';
-  }}
-/>
-                </motion.button>
+  className="user-avatar-button"
+  onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+  whileHover={{ scale: 1.05 }}
+  whileTap={{ scale: 0.95 }}
+>
+  <img 
+    src={user.photoURL || '/default-user.png'} 
+    alt={user.displayName} 
+    className="user-avatar-toolbar"
+    onError={(e) => {
+      e.target.src = '/default-user.png';
+    }}
+  />
+</motion.button>
                 
                 <AnimatePresence>
                   {isUserMenuOpen && (
@@ -615,23 +649,30 @@ function App() {
                   </AnimatePresence>
 
                   {activeSession && (chats[activeSession]?.messages || []).map((msg) => {
-  if (!msg) return null; // Защита от undefined
+  // Проверка на существование сообщения
+  if (!msg) return null;
   
+  // Проверка модели
   const sessionModel = chats[activeSession]?.model;
-  const modelObj = sessionModel 
-    ? LLM_MODELS.find(m => m.modelId === sessionModel) || LLM_MODELS[0]
-    : LLM_MODELS[0];
+  let modelObj = LLM_MODELS[0];
+  
+  if (sessionModel) {
+    const foundModel = LLM_MODELS.find(m => m.modelId === sessionModel);
+    if (foundModel) {
+      modelObj = foundModel;
+    }
+  }
   
   return (
     <Message
       key={msg.id}
-      content={msg.content}
-      isUser={msg.isUser}
-      imageUrl={msg.imageUrl}
-      aiImages={msg.aiImages}
+      content={msg.content || ''}
+      isUser={msg.isUser || false}
+      imageUrl={msg.imageUrl || null}
+      aiImages={msg.aiImages || []}
       model={modelObj}
-      isStreaming={msg.isStreaming}
-      userPhotoURL={user?.photoURL}
+      isStreaming={msg.isStreaming || false}
+      userPhotoURL={user?.photoURL || ''}
     />
   );
 })}
